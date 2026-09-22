@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Special Video Message 🎥</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Dancing+Script:wght@700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="new.css">
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="icon" href="images/bphoto.jpg" type="image/jpeg">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Great+Vibes&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+</head>
+<body>
+
+
+  <!-- Background Particle Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+    <section class="letter-level" aria-label="Birthday letter">
+      <div class="letter-shell">
+        <div class="paper-card">
+          <p class="level-kicker">Небольшое письмо для тебя</p>
+          <h2>Cамому лучшему человеку,</h2>
+          <p id="typedLetter" class="typed-letter"></p>
+          <span class="letter-signature"></span>
+        </div>
+
+        <div class="letter-navigation">
+          <a href="gallery.html" class="btn-secondary">
+            <span>⏮</span> Вернуться к воспоминаниям
+          </a>
+        </div>
+      </div>
+    </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-heart">🎂</div>
+    <p class="footer-text">Сделано с любовью, специально для тебя.</p>
+  </footer>
+
+  <!-- Shared Javascript Library -->
+  <script src="shared.js"></script>
+      <script src="js/config.js"></script>
+    <script src="js/shared.js"></script>
+    <script src="js/letter.js"></script>
+  <script>
+    const greetingTitle = document.getElementById("greeting-title");
+    const themeOpts = document.querySelectorAll(".theme-opt");
+    const videoElement = document.getElementById("bday-video");
+    const videoSource = videoElement.querySelector("source");
+    const videoFooter = document.getElementById("video-footer");
+
+    // Ensure the birthday video plays with sound and starts at full volume.
+    videoElement.muted = false;
+    videoElement.volume = 1.0;
+
+    function setVideoSource(src) {
+      if (videoSource) {
+        videoSource.src = src;
+      }
+      videoElement.src = src;
+      videoElement.load();
+    }
+
+    function updatePageContent() {
+      // Set header greeting
+      greetingTitle.innerHTML = `Special Video for <em>${activeConfig.name.toUpperCase()}</em>! 💖`;
+
+      // Theme toggle indicators
+      themeOpts.forEach(opt => {
+        opt.classList.toggle("selected", opt.dataset.themeVal === activeConfig.theme);
+      });
+
+      // Load Video source
+      if (activeConfig.videoData) {
+        setVideoSource(activeConfig.videoData);
+      } else {
+        setVideoSource("11.mp4");
+      }
+    }
+
+    // Handle video uploading
+    document.getElementById("input-video").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const objectURL = URL.createObjectURL(file);
+      setVideoSource(objectURL);
+      videoFooter.textContent = "New video loaded — press play to watch it.";
+      
+      // Save data URL to activeConfig if it is small enough (under 3.5MB) to avoid QuotaExceededError
+      if (file.size < 3.5 * 1024 * 1024) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          activeConfig.videoData = evt.target.result;
+          saveConfig();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // Too large for localstorage, clear previously stored data to avoid conflicts
+        delete activeConfig.videoData;
+        saveConfig();
+        alert("Video loaded successfully! Note: Since this file is large, it will play now in this session, but won't be saved permanently to browser storage (max storage limit is 5MB). To make a video permanent, place an MP4 named '11.mp4' in your folder!");
+      }
+      playSuccessChime();
+    });
+
+    videoElement.addEventListener("error", () => {
+      videoFooter.textContent = "Video failed to load. Please check that 11.mp4 exists in the same folder or upload a compatible MP4.";
+      alert("Unable to load the video file. Try refreshing the page or using a valid MP4 file named 11.mp4.");
+    });
+
+    videoElement.addEventListener("loadeddata", () => {
+      videoFooter.textContent = "Press play to watch the sweet memory.";
+    });
+
+    // ─── LIVE DRAWER LOGIC ───
+    const drawer = document.getElementById("customizer-drawer");
+    
+    document.getElementById("drawer-close").addEventListener("click", () => {
+      drawer.classList.remove("open");
+    });
+
+    themeOpts.forEach(opt => {
+      opt.addEventListener("click", () => {
+        themeOpts.forEach(o => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        activeConfig.theme = opt.dataset.themeVal;
+        applyTheme(activeConfig.theme);
+      });
+    });
+
+    document.getElementById("btn-save-drawer").addEventListener("click", () => {
+      saveConfig();
+      updatePageContent();
+      drawer.classList.remove("open");
+      playSuccessChime();
+      alert("Settings saved successfully!");
+    });
+
+    document.getElementById("btn-reset-drawer").addEventListener("click", () => {
+      if (confirm("Reset layout configs to default?")) {
+        localStorage.removeItem('bday_config');
+        activeConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+        applyTheme(activeConfig.theme);
+        
+        // Reset video element source
+        setVideoSource("11.mp4");
+        
+        updatePageContent();
+        drawer.classList.remove("open");
+        playSuccessChime();
+      }
+    });
+
+    // Scroll Reveal trigger
+    const revEls = document.querySelectorAll(".reveal");
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add("visible");
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: .1 });
+    revEls.forEach(el => obs.observe(el));
+
+    // Page Load setup
+    updatePageContent();
+  </script>
+</body>
+</html>
