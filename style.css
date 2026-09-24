@@ -755,7 +755,7 @@ body {
 }
 .wishes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   grid-auto-rows: minmax(320px, auto);
   gap: 2rem;
   width: 100%;
@@ -1260,4 +1260,41 @@ __________________
   transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
   font-family: var(--font-handwriting); 
+}
+
+.gallery-hint {
+  
+ transform: rotate(-30deg);        /* ← вот это добавляем */
+  transform-origin: top left;
+  top: -80px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 5;
+}
+.gallery-hint-text {
+  font-family: var(--font-handwriting);
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  transform: rotate(-6deg);
+  margin: 0 0 0.2rem 0.5rem;
+  white-space: nowrap;
+}
+.gallery-hint svg {
+  width: 80px;
+  height: 100px;
+  overflow: visible;
+}
+.gallery-hint path {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.polaroid{
+  transform: translateX(-80px);
 }
